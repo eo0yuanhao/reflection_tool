@@ -6,6 +6,8 @@ open System.Reflection
 open System.Collections.Generic
 open System.IO
 open System.Drawing
+open System.IO.Compression
+//#r "System.IO.Compression.FileSystem"
 
 //open System.Net.Mime.MediaTypeNames
 //System.IO.File.
@@ -84,7 +86,7 @@ fm.Show()
 //namespace_cmb.SelectedIndex=0
 let mutable currentAssembly=null
 //////===========================================================================
-
+let exeDir=Application.ExecutablePath |> fun s-> s.[..(s.LastIndexOf('\\'))] 
 
 let prettyTypeName (t:Type)=
     //let n=t.FullName.Replace(t.N)
@@ -216,12 +218,21 @@ let imglist=new ImageList()
 //["colon.ico";"313.ico";"jade.ico"]
 // let addicon (a:string) =
 //     imglist.Images.Add(new Drawing.Icon(a))
-["notitle1.ico";"notitle2.ico";"notitle3.ico";
+let zipFile = ZipFile.OpenRead(exeDir + "tt.res.zip" )
+
+let iconList=["notitle1.ico";"notitle2.ico";"notitle3.ico";
     "notitle4.ico";"notitle5.ico";"notitle6.ico";
     "folder.ico";"tasks.ico";"313.ico";"jade.ico"] 
-    |> Seq.iter (fun s-> new Drawing.Icon(s) |> imglist.Images.Add )
-    //|> Seq.iter addicon
+//iconList |> Seq.iter  (fun s-> new Drawing.Icon(s) |> imglist.Images.Add )
 
+for i in iconList do
+    let ent=zipFile.GetEntry(i)  
+    let stream=ent.Open()
+    imglist.Images.Add(new Drawing.Icon(stream) )
+    stream.
+    
+    //|> Seq.iter addicon
+zipFile.Dispose()
 type_treeView.ImageList <- imglist
 
 type IconIndex = Brace=2 | Interface =4 | Struct=6 | Class=1 | Enum_ =3 | Nested =3 | Generic=1
@@ -231,7 +242,7 @@ let groupNodes=ResizeArray<TreeNode>()
 namespace_cmb.SelectedItem <- namespace_cmb.Items.[0]
 
 let task1 =new System.Threading.Tasks.Task( fun () ->
-    let exeDir=Application.ExecutablePath |> fun s-> s.[..(s.LastIndexOf('\\'))] 
+
     let mutable allType=[]    
     if(File.Exists(exeDir + "refl_tool.inf")) then
         // configure file all content needn't to confirm 
